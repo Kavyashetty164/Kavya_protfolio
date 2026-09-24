@@ -4,22 +4,43 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kavya Shree G N — Software Developer</title>
+<meta name="description" content="Kavya Shree G N — full-stack developer and data analyst based in Bengaluru. React, Python, Flask, Power BI and machine learning.">
+<meta name="theme-color" content="#08080b">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800;900&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800;900&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="is-loading">
 
-<nav>
-  <div class="wrap">
-    <div class="brand">kavya<span>.</span></div>
-    <div class="nav-links">
+<!-- ============ PRELOADER ============ -->
+<div class="loader" id="loader" aria-hidden="true">
+  <div class="loader-inner">
+    <div class="loader-name"><span>K</span><span>A</span><span>V</span><span>Y</span><span>A</span></div>
+    <div class="loader-bar"><i id="loaderBar"></i></div>
+    <div class="loader-meta"><span>// INITIALISING PORTFOLIO</span><span id="loaderCount">000</span></div>
+  </div>
+</div>
+
+<!-- ============ GLOBAL FX ============ -->
+<div class="grain" aria-hidden="true"></div>
+<div class="scroll-progress" aria-hidden="true"><i id="scrollProgress"></i></div>
+<div class="cursor" id="cursor" aria-hidden="true"></div>
+<div class="cursor-ring" id="cursorRing" aria-hidden="true"></div>
+
+<!-- ============ NAV ============ -->
+<nav class="nav" id="nav">
+  <div class="nav-inner">
+    <a href="#home" class="brand">Kavya<span>.</span></a>
+    <div class="nav-links" id="navLinks">
+      <a href="#home" class="active">Home</a>
       <a href="#about">About</a>
       <a href="#expertise">Expertise</a>
       <a href="#skills">Skills</a>
       <a href="#work">Projects</a>
+      <a href="#certifications">Certifications</a>
       <a href="#contact">Contact</a>
+      <span class="nav-indicator" id="navIndicator"></span>
     </div>
     <div class="nav-actions">
       <a href="https://github.com/Kavyashetty164" target="_blank" rel="noopener" aria-label="GitHub" class="social-link">
@@ -28,33 +49,41 @@
       <a href="https://www.linkedin.com/in/kavya-gn-1a6a30322" target="_blank" rel="noopener" aria-label="LinkedIn" class="social-link">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.94 8.5A1.56 1.56 0 1 1 6.93 5.4a1.56 1.56 0 0 1 .01 3.1ZM5.5 9.75h2.88v8.75H5.5V9.75Zm4.75 0h2.76v1.2h.04c.38-.72 1.33-1.48 2.74-1.48 2.93 0 3.47 1.93 3.47 4.43v4.6h-2.88v-4.3c0-1.03-.02-2.35-1.43-2.35-1.43 0-1.65 1.12-1.65 2.27v4.38H10.25V9.75Z"/></svg>
       </a>
-      <a href="assets/Kavya-Resume(hh).pdf" class="download-btn" download="Kavya-Shree-GN-CV.pdf">Download CV</a>
+      <a href="#contact" class="hire-btn magnetic"><span>Hire Me</span></a>
+      <button class="menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false"><i></i><i></i></button>
     </div>
   </div>
 </nav>
 
-<div class="hero-pin-wrap" id="heroPinWrap">
+<!-- ============ HERO (scroll-scrubbed) ============ -->
+<div class="hero-pin" id="home">
   <header class="hero" id="hero">
-    <div class="hero-bg"></div>
-    <div class="wrap">
-      <div class="hero-eyebrow">HI, I'M <strong>KAVYA</strong></div>
-      <h1 class="hero-headline" id="heroHeadline">
-        <span class="line active" data-i="0">FULL-STACK<br>DEVELOPER</span>
-        <span class="line" data-i="1">DATA<br>STORYTELLER</span>
-        <span class="line" data-i="2">SYSTEMS<br>THINKER</span>
-        <span class="line" data-i="3">ALWAYS<br>LEARNING</span>
+    <div class="hero-media" id="heroMedia">
+      <img src="assets/kavya.jpg" alt="Portrait of Kavya Shree G N" id="heroImg" fetchpriority="high">
+    </div>
+    <div class="hero-shade"></div>
+    <div class="hero-spot" id="heroSpot"></div>
+    <div class="hero-flash" id="heroFlash"></div>
+
+    <div class="hero-content">
+      <div class="hero-eyebrow reveal-up">HI, I'M <strong>KAVYA</strong></div>
+      <h1 class="hero-headline" id="heroHeadline" aria-live="polite">
+        <span class="line is-active" data-i="0">CREATIVE<br>DEVELOPER</span>
+        <span class="line" data-i="1">FULL-STACK<br>ENGINEER</span>
+        <span class="line" data-i="2">DATA<br>STORYTELLER</span>
+        <span class="line" data-i="3">AI / ML<br>EXPLORER</span>
       </h1>
     </div>
 
-    <div class="hero-side" id="heroSide">
-      <div class="comment" id="heroComment">// BUILDING END-TO-END</div>
-      <div class="desc" id="heroDesc">Designing interfaces in React and wiring them to Python and Flask APIs underneath.</div>
+    <div class="hero-side">
+      <div class="comment" id="heroComment">// TURNING IDEAS INTO REALITY</div>
+      <div class="desc" id="heroDesc">Available for hire. Building fast, responsive web applications using modern tech stacks.</div>
     </div>
 
-    <div class="wrap hero-foot">
+    <div class="hero-foot">
       <div class="scrub">
-        <div class="scrub-label">↓ SCROLL TO SCRUB TIMELINE</div>
-        <div class="scrub-track" id="scrubTrack">
+        <div class="scrub-label"><span class="arrow">↓</span> SCROLL TO SCRUB TIMELINE</div>
+        <div class="scrub-track">
           <div class="scrub-seg"><i></i></div>
           <div class="scrub-seg"><i></i></div>
           <div class="scrub-seg"><i></i></div>
@@ -62,251 +91,249 @@
         </div>
       </div>
       <div class="hero-cta">
-        <a href="#work" class="btn btn-ghost">View My Work</a>
-        <a href="#contact" class="btn btn-solid">Contact Me</a>
+        <a href="#work" class="btn btn-ghost magnetic"><span>View My Work</span></a>
+        <a href="#contact" class="btn btn-solid magnetic"><span>Contact Me</span></a>
       </div>
     </div>
   </header>
 </div>
 
-<section id="about">
-  <div class="wrap about-grid reveal">
-    <div class="profile-card">
-      <img src="assets/ChatGPT%20Image%20Sep%2015,%202026,%2004_37_00%20PM.png" alt="Kavya Shree G N">
-      <div class="profile-badge"><span class="dot"></span>OPEN TO OPPORTUNITIES</div>
+<main>
+
+<!-- ============ ABOUT ============ -->
+<section id="about" class="section">
+  <div class="wrap about-grid">
+    <div class="profile-stage" data-reveal>
+      <div class="profile-glow"></div>
+      <div class="profile-card tilt" id="profileCard">
+        <img src="assets/kavya-card.jpg" alt="Kavya Shree G N" loading="lazy">
+        <div class="profile-shine"></div>
+        <div class="profile-badge"><span class="dot"></span>OPEN TO OPPORTUNITIES <em>2026</em></div>
+      </div>
     </div>
-    <div>
-      <div class="tag"><span class="dot"></span>// SYSTEM PROFILE</div>
-      <h2 class="about-name">Hello, I'm<br>Kavya Shree G N</h2>
-      <p class="about-text">An MCA student, software developer, and freelancer in Bengaluru, dedicated to building clean, functional applications. I split my time between full-stack development and data analytics — shipping client work, exploring machine learning fundamentals, and turning messy datasets into dashboards people actually use.</p>
-      <div class="stat-row">
-        <div class="stat-chip"><div class="big">Full-Stack</div><div class="small">Development</div></div>
-        <div class="stat-chip"><div class="big">React & Python</div><div class="small">Core Tech</div></div>
-        <div class="stat-chip"><div class="big">Data Driven</div><div class="small">Analytics</div></div>
+    <div class="about-copy">
+      <div class="tag" data-reveal><span class="dot"></span>// SYSTEM PROFILE</div>
+      <h2 class="about-name split-words">Hello, I'm<br>Kavya Shree G N</h2>
+      <p class="about-text" data-reveal>An MCA student, software developer and freelancer in Bengaluru, dedicated to building clean, functional and scalable applications. I split my time between full-stack development and data analytics — shipping client work, exploring machine-learning fundamentals, and turning messy datasets into dashboards people actually use.</p>
+      <div class="stat-row" data-reveal-stagger>
+        <div class="stat-chip"><div class="big">Full-Stack</div><div class="small">ARCHITECTURE</div></div>
+        <div class="stat-chip"><div class="big">React &amp; Python</div><div class="small">CORE TECH</div></div>
+        <div class="stat-chip"><div class="big">Data Driven</div><div class="small">ANALYTICS</div></div>
+      </div>
+      <div class="counter-row" data-reveal-stagger>
+        <div class="counter"><b data-count="4">0</b><span>+</span><small>Featured projects</small></div>
+        <div class="counter"><b data-count="5">0</b><span>+</span><small>Certifications</small></div>
+        <div class="counter"><b data-count="15">0</b><span>+</span><small>Technologies</small></div>
       </div>
     </div>
   </div>
 </section>
 
-<section id="expertise">
-  <div class="wrap">
-    <div class="section-head reveal">
-      <div class="tag"><span class="dot"></span>// ENGINEERING ROADMAP</div>
-      <h2 class="section-title">Core Execution Root Map</h2>
-      <p class="section-sub">The four areas I keep coming back to, from client-facing UI down to the data underneath it.</p>
+<!-- ============ SKILLS ============ -->
+<section id="skills" class="section">
+  <div class="wrap section-head">
+    <div class="tag" data-reveal><span class="dot"></span>// TECHNICAL STACK</div>
+    <h2 class="section-title split-words">Technologies I Work With</h2>
+    <p class="section-sub" data-reveal>Full-stack fundamentals paired with the analytics and ML tools I use to make sense of data.</p>
+  </div>
+  <div class="marquee-stage" data-reveal>
+    <div class="marquee" data-speed="38">
+      <div class="marquee-track">
+        <span class="pill">Python</span><span class="pill">JavaScript (ES6+)</span><span class="pill">React.js</span><span class="pill">HTML5</span><span class="pill">CSS3</span><span class="pill">Vite</span><span class="pill">Flask</span><span class="pill">REST APIs</span>
+      </div>
     </div>
-    <div class="root-grid reveal">
-      <div class="root-card">
-        <div class="idx">// ROOT 01</div>
+    <div class="marquee reverse" data-speed="46">
+      <div class="marquee-track">
+        <span class="pill">SQL</span><span class="pill">MySQL</span><span class="pill">Power BI</span><span class="pill">Excel</span><span class="pill">Git &amp; GitHub</span><span class="pill">Java</span><span class="pill">Data Structures</span>
+      </div>
+    </div>
+    <div class="marquee" data-speed="42">
+      <div class="marquee-track">
+        <span class="pill">Machine Learning</span><span class="pill">scikit-learn</span><span class="pill">Computer Vision</span><span class="pill">OpenCV</span><span class="pill">Pandas</span><span class="pill">NumPy</span><span class="pill">Oracle Cloud</span><span class="pill">Data Visualisation</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ EXPERTISE ============ -->
+<section id="expertise" class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="tag" data-reveal><span class="dot"></span>// ENGINEERING ROADMAP</div>
+      <h2 class="section-title split-words">Core Execution Root Map</h2>
+      <p class="section-sub" data-reveal>The four areas I keep coming back to, from client-facing UI down to the data underneath it.</p>
+    </div>
+    <div class="root-grid" data-reveal-stagger>
+      <article class="root-card tilt spot">
+        <div class="root-top"><span class="idx">// ROOT 01</span><span class="root-ico">⌘</span></div>
         <h3>Frontend Development</h3>
-        <p>Building responsive, component-driven interfaces that hold up on any screen.</p>
-        <div class="stackline">React & CSS3</div>
-      </div>
-      <div class="root-card">
-        <div class="idx">// ROOT 02</div>
+        <p>Architecting responsive, component-driven interfaces that hold up on any screen.</p>
+        <div class="stackline">React &amp; CSS3</div>
+      </article>
+      <article class="root-card tilt spot">
+        <div class="root-top"><span class="idx">// ROOT 02</span><span class="root-ico">⇄</span></div>
         <h3>Backend Development</h3>
-        <p>Wiring up REST APIs, database schemas, and the logic that connects them.</p>
-        <div class="stackline">Python & Flask</div>
-      </div>
-      <div class="root-card">
-        <div class="idx">// ROOT 03</div>
-        <h3>Data & Analytics</h3>
+        <p>Building secure REST APIs, database schemas and the logic that connects them.</p>
+        <div class="stackline">Python &amp; Flask</div>
+      </article>
+      <article class="root-card tilt spot">
+        <div class="root-top"><span class="idx">// ROOT 03</span><span class="root-ico">◔</span></div>
+        <h3>Data &amp; Analytics</h3>
         <p>Turning raw datasets into dashboards and visuals people can act on.</p>
-        <div class="stackline">Power BI & Excel</div>
-      </div>
-      <div class="root-card">
-        <div class="idx">// ROOT 04</div>
-        <h3>AI & Machine Learning</h3>
-        <p>Exploring model fundamentals and practical applications, one project at a time.</p>
-        <div class="stackline">Python & scikit-learn</div>
-      </div>
+        <div class="stackline">Power BI &amp; Excel</div>
+      </article>
+      <article class="root-card tilt spot">
+        <div class="root-top"><span class="idx">// ROOT 04</span><span class="root-ico">✦</span></div>
+        <h3>AI &amp; Machine Learning</h3>
+        <p>Exploring model fundamentals and practical, intelligent applications.</p>
+        <div class="stackline">Python &amp; scikit-learn</div>
+      </article>
     </div>
   </div>
 </section>
 
-<section id="skills">
-  <div class="wrap">
-    <div class="section-head reveal">
-      <div class="tag"><span class="dot"></span>// TECHNICAL STACK</div>
-      <h2 class="section-title">Technologies I Work With</h2>
-      <p class="section-sub">Full-stack fundamentals paired with the analytics tools I use to make sense of data.</p>
-    </div>
-    <div class="pill-field reveal">
-      <span class="pill">Python</span>
-      <span class="pill">JavaScript (ES6+)</span>
-      <span class="pill">SQL</span>
-      <span class="pill">React.js</span>
-      <span class="pill">HTML5</span>
-      <span class="pill">CSS3</span>
-      <span class="pill">Vite</span>
-      <span class="pill">Flask</span>
-      <span class="pill">REST APIs</span>
-      <span class="pill">Power BI</span>
-      <span class="pill">Excel</span>
-      <span class="pill">Git & GitHub</span>
-      <span class="pill">MySQL</span>
-      <span class="pill">Data Structures</span>
-      <span class="pill">Machine Learning</span>
-    </div>
-  </div>
-</section>
-
-<section id="work">
-  <div class="wrap">
-    <div class="section-head reveal">
-      <div class="tag"><span class="dot"></span>// PORTFOLIO WORK</div>
-      <h2 class="section-title">Featured Engineering Projects</h2>
-      <p class="section-sub">A mix of client work and independent builds — scroll to see all four.</p>
-    </div>
-
-    <div class="project-scroller reveal">
-      <div class="project-card">
-        <div class="project-top">
-          <div class="project-idx">// PROJECT 01</div>
-          <div class="project-cat">Client Work</div>
-        </div>
-        <div class="project-name">Bhavana Clicks</div>
-        <p class="project-desc">A photography booking and portfolio website built for a client, from component structure through responsive styling and animation.</p>
-        <div class="project-tags"><span>React.js</span><span>JavaScript</span><span>HTML5</span><span>CSS3</span><span>Vite</span></div>
-        <a href="https://github.com/Kavyashetty164" target="_blank" rel="noopener" class="project-link">CODE →</a>
-          </div>
-
-          <div class="project-card">
-        <div class="project-top">
-          <div class="project-idx">// PROJECT 02</div>
-          <div class="project-cat">Computer Vision</div>
-        </div>
-        <div class="project-name">Face Recognition Attendance System</div>
-        <p class="project-desc">Automates attendance tracking with real-time face recognition, backed by a Flask API and a relational database.</p>
-        <div class="project-tags"><span>Python</span><span>Flask</span><span>SQL</span><span>HTML/CSS/JS</span></div>
-        <a href="https://github.com/Kavyashetty164" target="_blank" rel="noopener" class="project-link">CODE →</a>
-          </div>
-
-          <div class="project-card">
-        <div class="project-top">
-          <div class="project-idx">// PROJECT 03</div>
-          <div class="project-cat">Simulation</div>
-        </div>
-        <div class="project-name">Elevator System Simulation</div>
-        <p class="project-desc">Models real-world elevator dispatch and scheduling logic using core data structures for request handling.</p>
-        <div class="project-tags"><span>Stack</span><span>Queue</span><span>Priority Queue</span></div>
-        <a href="https://github.com/Kavyashetty164" target="_blank" rel="noopener" class="project-link">CODE →</a>
-          </div>
-
-          <div class="project-card">
-        <div class="project-top">
-          <div class="project-idx">// PROJECT 04</div>
-          <div class="project-cat">Data Analytics</div>
-        </div>
-        <div class="project-name">COVID-19 Vaccine Trend Analysis</div>
-        <p class="project-desc">An interactive dashboard exploring global vaccination trends, built for visual, exploratory analysis.</p>
-        <div class="project-tags"><span>Power BI</span><span>Excel</span></div>
-        <a href="https://github.com/Kavyashetty164" target="_blank" rel="noopener" class="project-link">CODE →</a>
+<!-- ============ PROJECTS (horizontal scroll) ============ -->
+<section id="work" class="work">
+  <div class="work-pin" id="workPin">
+    <div class="work-sticky">
+      <div class="wrap section-head">
+        <div class="tag" data-reveal><span class="dot"></span>// PORTFOLIO WORK</div>
+        <h2 class="section-title split-words">Featured Engineering Projects</h2>
       </div>
+      <div class="work-track" id="workTrack">
+        <article class="project-card spot">
+          <div class="project-top"><span class="project-idx">// PROJECT 01</span><span class="project-cat">Client Work</span></div>
+          <h3 class="project-name">Bhavana Clicks</h3>
+          <p class="project-desc">A photography booking and portfolio website built for a client — from component structure through responsive styling and animation.</p>
+          <div class="project-tags"><span>React.js</span><span>JavaScript</span><span>HTML5</span><span>CSS3</span><span>Vite</span></div>
+          <a href="https://github.com/Kavyashetty164" target="_blank" rel="noopener" class="project-link">CODE <b>→</b></a>
+        </article>
+        <article class="project-card spot">
+          <div class="project-top"><span class="project-idx">// PROJECT 02</span><span class="project-cat">Computer Vision</span></div>
+          <h3 class="project-name">Face Recognition Attendance System</h3>
+          <p class="project-desc">Automates attendance tracking with real-time face recognition, backed by a Flask API and a relational database.</p>
+          <div class="project-tags"><span>Python</span><span>Flask</span><span>SQL</span><span>HTML/CSS/JS</span></div>
+          <a href="https://github.com/Kavyashetty164" target="_blank" rel="noopener" class="project-link">CODE <b>→</b></a>
+        </article>
+        <article class="project-card spot">
+          <div class="project-top"><span class="project-idx">// PROJECT 03</span><span class="project-cat">Simulation</span></div>
+          <h3 class="project-name">Elevator System Simulation</h3>
+          <p class="project-desc">Models real-world elevator dispatch and scheduling logic using core data structures for request handling.</p>
+          <div class="project-tags"><span>Stack</span><span>Queue</span><span>Priority Queue</span></div>
+          <a href="https://github.com/Kavyashetty164" target="_blank" rel="noopener" class="project-link">CODE <b>→</b></a>
+        </article>
+        <article class="project-card spot">
+          <div class="project-top"><span class="project-idx">// PROJECT 04</span><span class="project-cat">Data Analytics</span></div>
+          <h3 class="project-name">COVID-19 Vaccine Trend Analysis</h3>
+          <p class="project-desc">An interactive dashboard exploring global vaccination trends, built for visual, exploratory analysis.</p>
+          <div class="project-tags"><span>Power BI</span><span>Excel</span></div>
+          <a href="https://github.com/Kavyashetty164" target="_blank" rel="noopener" class="project-link">CODE <b>→</b></a>
+        </article>
+        <a class="project-card project-more" href="https://github.com/Kavyashetty164" target="_blank" rel="noopener">
+          <span class="project-idx">// MORE</span>
+          <span class="more-big">Explore all<br>repositories <b>↗</b></span>
+          <span class="more-sub">github.com/Kavyashetty164</span>
+        </a>
       </div>
+      <div class="wrap work-progress"><div class="work-bar"><i id="workBar"></i></div><span id="workCount">01 / 05</span></div>
     </div>
   </div>
 </section>
 
-<section id="certifications">
+<!-- ============ CERTIFICATIONS ============ -->
+<section id="certifications" class="section">
   <div class="wrap">
-    <div class="section-head reveal">
-      <div class="tag"><span class="dot"></span>// CREDENTIALS</div>
-      <h2 class="section-title">Certifications & Experience</h2>
+    <div class="section-head">
+      <div class="tag" data-reveal><span class="dot"></span>// CREDENTIALS</div>
+      <h2 class="section-title split-words">Certifications &amp; Experience</h2>
     </div>
-    <div class="cert-list reveal">
-      <div class="cert-row">
-        <div><div class="cert-name">AI/ML Intern</div><div class="cert-org">InternPe — AI fundamentals, ML basics, applied data analysis</div></div>
-        <div class="cert-year">Internship</div>
-      </div>
-      <div class="cert-row">
-        <div><div class="cert-name">Oracle Cloud Infrastructure</div><div class="cert-org">Data Science Professional</div></div>
-        <div class="cert-year">Oracle</div>
-      </div>
-      <div class="cert-row">
-        <div><div class="cert-name">Excel & Power BI</div><div class="cert-org">Dell Technologies Certified</div></div>
-        <div class="cert-year">Dell</div>
-      </div>
-      <div class="cert-row">
-        <div><div class="cert-name">Python Programming</div><div class="cert-org">Coursera</div></div>
-        <div class="cert-year">Coursera</div>
-      </div>
-      <div class="cert-row">
-        <div><div class="cert-name">Java Programming Masterclass</div><div class="cert-org">Coursera</div></div>
-        <div class="cert-year">Coursera</div>
-      </div>
+    <div class="cert-list" data-reveal-stagger>
+      <div class="cert-row"><span class="cert-no">01</span><div><div class="cert-name">AI/ML Intern</div><div class="cert-org">InternPe — AI fundamentals, ML basics, applied data analysis</div></div><div class="cert-year">Internship</div></div>
+      <div class="cert-row"><span class="cert-no">02</span><div><div class="cert-name">Oracle Cloud Infrastructure</div><div class="cert-org">Data Science Professional</div></div><div class="cert-year">Oracle</div></div>
+      <div class="cert-row"><span class="cert-no">03</span><div><div class="cert-name">Excel &amp; Power BI</div><div class="cert-org">Dell Technologies Certified</div></div><div class="cert-year">Dell</div></div>
+      <div class="cert-row"><span class="cert-no">04</span><div><div class="cert-name">Python Programming</div><div class="cert-org">Coursera</div></div><div class="cert-year">Coursera</div></div>
+      <div class="cert-row"><span class="cert-no">05</span><div><div class="cert-name">Java Programming Masterclass</div><div class="cert-org">Coursera</div></div><div class="cert-year">Coursera</div></div>
     </div>
   </div>
 </section>
 
-<section id="contact">
-  <div class="wrap">
-    <div class="tag reveal"><span class="dot"></span>// LIVE DISPATCH NODE</div>
-    <div class="contact-grid reveal" style="margin-top:20px;">
-      <div>
-        <h2 class="contact-title">Let's build something exceptional.</h2>
-        <p class="contact-sub">Fill out the form and I'll get back to you — or watch the preview on the left fill in as you type.</p>
-
-        <div class="json-preview" id="jsonPreview">
-          <div class="l1">// payload_preview.json</div>
+<!-- ============ CONTACT ============ -->
+<section id="contact" class="section contact">
+  <div class="contact-word" id="contactWord" aria-hidden="true">CONTACT</div>
+  <div class="wrap contact-grid">
+    <div>
+      <div class="tag" data-reveal><span class="dot"></span>// LIVE DISPATCH NODE</div>
+      <h2 class="contact-title split-words">Let's Build Something Exceptional.</h2>
+      <p class="contact-sub" data-reveal>Fill out the transmission form or preview the payload stream directly below.</p>
+      <div class="json-preview" data-reveal>
+        <div class="term-bar"><i></i><i></i><i></i><span>payload_preview.json</span></div>
+        <div class="term-body">
           <div><span class="key">sender:</span> <span class="val empty" id="pvName">[Awaiting Name]</span></div>
           <div><span class="key">email:</span> <span class="val empty" id="pvEmail">[Awaiting Email]</span></div>
-          <div><span class="key">message:</span> <span class="val empty" id="pvMsg">"[Awaiting Message]"</span></div>
+          <div><span class="key">message:</span> <span class="val empty" id="pvMsg">"[Awaiting Message]"</span><span class="caret"></span></div>
         </div>
-      </div>
-
-      <div>
-        <div class="form-field">
-          <label for="fName">Full Name</label>
-          <input type="text" id="fName" placeholder="First Last">
-        </div>
-        <div class="form-field">
-          <label for="fEmail">Email Address</label>
-          <input type="email" id="fEmail" placeholder="you@example.com">
-        </div>
-        <div class="form-field">
-          <label for="fMsg">Message</label>
-          <textarea id="fMsg" placeholder="Type your message here…"></textarea>
-        </div>
-        <div class="consent">
-          <input type="checkbox" id="fConsent">
-          <label for="fConsent">I give permission to contact me at this email address.</label>
-        </div>
-        <button class="send-btn" id="sendBtn" disabled>Send Message</button>
       </div>
     </div>
+
+    <form class="contact-form" id="contactForm" data-reveal novalidate>
+      <div class="form-field">
+        <input type="text" id="fName" placeholder=" " autocomplete="name">
+        <label for="fName">Full Name</label>
+      </div>
+      <div class="form-field">
+        <input type="email" id="fEmail" placeholder=" " autocomplete="email">
+        <label for="fEmail">Email Address</label>
+      </div>
+      <div class="form-field">
+        <textarea id="fMsg" placeholder=" " rows="4"></textarea>
+        <label for="fMsg">Type your message here…</label>
+      </div>
+      <label class="consent">
+        <input type="checkbox" id="fConsent">
+        <span class="box"></span>
+        <span>I give permission to contact me at this email address.</span>
+      </label>
+      <button type="submit" class="send-btn" id="sendBtn" disabled><span>Send Message</span><b>→</b></button>
+    </form>
   </div>
 </section>
 
-<footer>
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
   <div class="wrap">
-    <div class="footer-grid">
+    <div class="footer-grid" data-reveal-stagger>
       <div class="footer-col">
         <div class="tag"><span class="dot"></span>// SYSTEM ARCHITECTURE</div>
         <p>Full-Stack Web Engineering</p>
-        <p>Data Analytics & Dashboards</p>
-        <p>Continuous Learning — MCA, Bengaluru</p>
+        <p>Data Analytics &amp; Dashboards</p>
+        <p>AI &amp; Machine Learning Solutions</p>
       </div>
       <div class="footer-col">
         <div class="tag green"><span class="dot"></span>// STATUS</div>
-        <p>Open to opportunities</p>
+        <p class="green-text">Open to opportunities</p>
         <a href="#work">View Work →</a>
       </div>
       <div class="footer-col">
         <div class="tag"><span class="dot"></span>// ENGINEERING INDEX</div>
-        <a href="mailto:kavyamurthy2004@gmail.com">kavyamurthy2004@gmail.com</a>
-        <a href="https://github.com/Kavyashetty164" target="_blank" rel="noopener">github.com/Kavyashetty164</a>
-        <a href="https://www.linkedin.com/in/kavya-gn-1a6a30322" target="_blank" rel="noopener">linkedin.com/in/kavya-gn-1a6a30322</a>
+        <a href="https://github.com/Kavyashetty164" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://www.linkedin.com/in/kavya-gn-1a6a30322" target="_blank" rel="noopener">LinkedIn</a>
+        <a href="assets/Kavya-Resume.pdf" download="Kavya-Shree-GN-CV.pdf">Download CV</a>
       </div>
     </div>
+    <div class="footer-name" id="footerName" aria-label="Kavya">KAVYA</div>
     <div class="footer-bottom">
-      <span>Kavya Shree G N</span>
-      <span>Bengaluru, India</span>
+      <div>
+        <div class="tag"><span class="dot"></span>Contact Transmission</div>
+        <span>© <span id="year">2026</span> Kavya Shree G N · Built with HTML, CSS &amp; JavaScript</span>
+      </div>
+      <a href="mailto:kavyamurthy2004@gmail.com" class="mail-link">kavyamurthy2004@gmail.com</a>
+      <a href="#home" class="to-top magnetic" aria-label="Back to top">↑</a>
     </div>
   </div>
 </footer>
 
-<script src="js/script.js"></script>
-
+<script src="script.js"></script>
 </body>
 </html>
