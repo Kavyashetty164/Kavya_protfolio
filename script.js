@@ -155,35 +155,9 @@
   /* ---------- About: tilted device card ---------- */
   const aboutSec = $('#about');
   const profileCard = $('#profileCard');
-  let cardMouse = { x: 0, y: 0 }, cm = { x: 0, y: 0 };
-  if (finePointer) {
-    profileCard.addEventListener('pointermove', e => {
-      const r = profileCard.getBoundingClientRect();
-      cardMouse = { x: (e.clientX - r.left) / r.width - 0.5, y: (e.clientY - r.top) / r.height - 0.5 };
-    });
-    profileCard.addEventListener('pointerleave', () => { cardMouse = { x: 0, y: 0 }; });
-  }
   function updateAbout(y, vh) {
     const e = ease(enterProgress(aboutSec, y, vh, 1.0));
-    cm.x = lerp(cm.x, cardMouse.x, 0.1); cm.y = lerp(cm.y, cardMouse.y, 0.1);
-    profileCard.style.setProperty('--rx', (lerp(28, 6, e) - cm.y * 10) + 'deg');
-    profileCard.style.setProperty('--ry', (lerp(-38, -14, e) + cm.x * 14) + 'deg');
-    profileCard.style.setProperty('--rz', lerp(-14, -5, e) + 'deg');
-    profileCard.style.setProperty('--ty', lerp(140, 0, e) + 'px');
-  }
-
-  /* ---------- Root map cards rise and flatten ---------- */
-  const rootGrid = $('#rootGrid');
-  const rootCards = $$('.root-item');
-  function updateRoots(y, vh) {
-    const base = enterProgress(rootGrid, y, vh, 0.9);
-    rootCards.forEach((c, i) => {
-      const e = ease(clamp(base * 1.5 - i * 0.12));
-      c.style.setProperty('--ty', lerp(160, 0, e) + 'px');
-      c.style.setProperty('--rx', lerp(48, 0, e) + 'deg');
-      c.style.setProperty('--ry', lerp(-18, 0, e) + 'deg');
-      c.style.setProperty('--op', e);
-    });
+    profileCard.style.setProperty('--ty', lerp(90, 0, e) + 'px');
   }
 
   /* ---------- Projects: vertical scroll → horizontal, centre card in focus ---------- */
@@ -308,7 +282,7 @@
   if (finePointer) {
     addEventListener('pointermove', e => { cx = e.clientX; cy = e.clientY; document.body.classList.add('has-cursor'); });
     document.addEventListener('pointerleave', () => document.body.classList.remove('has-cursor'));
-    document.addEventListener('pointerover', e => ring.classList.toggle('hover', !!e.target.closest('a,button,.pill,.project-card,.root-card,input,textarea,label')));
+    document.addEventListener('pointerover', e => ring.classList.toggle('hover', !!e.target.closest('a,button,.pill,.project-card,input,textarea,label')));
   }
   function updateCursor() {
     if (!finePointer) return;
@@ -328,7 +302,6 @@
 
     updateHero(y, vh);
     updateAbout(y, vh);
-    updateRoots(y, vh);
     updateWork(y, vh);
     updateContact(y, vh);
     updateMarquees(dt, velocity);
@@ -361,7 +334,6 @@
     window.location.href = `mailto:kavyamurthy2004@gmail.com?subject=${subject}&body=${body}`;
   });
 
-  $('#year').textContent = new Date().getFullYear();
 
   /* ---------- Boot ---------- */
   sizeWork();

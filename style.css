@@ -171,12 +171,11 @@ body.ready .hero::after{animation:flashIn 1.8s var(--ease) .1s both}
 .halo-profile{width:118%;opacity:.5;filter:blur(20px);animation-duration:22s}
 .profile-card{position:relative;z-index:1;width:min(380px,100%);aspect-ratio:4/5;border-radius:34px;padding:10px;background:linear-gradient(145deg,#2a2830,#141318);
   box-shadow:0 50px 100px -30px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,255,255,.12),0 0 0 1px rgba(255,255,255,.06);
-  transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) rotateZ(var(--rz,0deg)) translate3d(0,var(--ty,0px),0);transform-style:preserve-3d;will-change:transform}
+  transform:translate3d(0,var(--ty,0px),0);will-change:transform}
 .profile-card img{width:100%;height:100%;object-fit:cover;border-radius:26px}
 .profile-badge{position:absolute;left:22px;right:22px;bottom:22px;display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:14px;
   font-family:var(--mono);font-size:10px;font-weight:800;letter-spacing:.1em;background:rgba(18,17,22,.82);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.1)}
 .profile-badge .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:pulse 2s infinite}
-.profile-badge em{margin-left:auto;font-style:normal;color:var(--muted)}
 @keyframes pulse{50%{opacity:.35}}
 .about-copy{display:flex;flex-direction:column;align-items:flex-start;gap:20px}
 .about-name{font-size:clamp(34px,4.3vw,64px);color:#fff}
@@ -207,26 +206,8 @@ body.ready .hero::after{animation:flashIn 1.8s var(--ease) .1s both}
   text-shadow:0 0 10px rgba(255,255,255,.35);transition:background .3s,color .3s,transform .4s var(--ease),box-shadow .3s}
 .pill:hover{background:#fff;color:#1a1520;text-shadow:none;transform:translateY(-3px);box-shadow:0 0 30px rgba(255,255,255,.4)}
 
-/* root map — glass cards with white glow halos */
-.root-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;perspective:1600px}
-.root-item{position:relative;display:flex;transform:translate3d(0,var(--ty,0px),0) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));opacity:var(--op,1);will-change:transform}
-.root-item .halo{width:138%;opacity:.45;filter:blur(18px)}
-.root-item:nth-child(2) .halo{animation-delay:-4.5s}
-.root-item:nth-child(3) .halo{animation-delay:-9s}
-.root-item:nth-child(4) .halo{animation-delay:-13.5s}
-.root-card{position:relative;z-index:1;flex:1;padding:22px 20px 20px;border-radius:22px;min-height:250px;display:flex;flex-direction:column;
-  background:linear-gradient(170deg,rgba(62,52,72,.92),rgba(34,28,42,.94));border:1.5px solid rgba(255,255,255,.28);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 30px 60px -30px rgba(0,0,0,.9)}
-.root-top{display:flex;justify-content:space-between;align-items:center}
-.idx{font-family:var(--mono);font-size:11px;font-weight:800;letter-spacing:.06em;color:#fff}
 .led{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.55);box-shadow:0 0 8px rgba(255,255,255,.6)}
 .led.green{background:var(--green);box-shadow:0 0 10px var(--green);animation:pulse 2s infinite}
-.root-card h3{font-family:var(--display);font-weight:900;font-stretch:112%;font-size:20px;line-height:1.05;letter-spacing:-.03em;margin:28px 0 10px}
-.root-card p{font-size:13px;color:#cbc4d6;line-height:1.5}
-.stackline{margin-top:auto;padding-top:18px}
-.stackline{align-self:flex-start;font-family:var(--mono);font-size:10.5px;font-weight:700}
-.stackline::before{content:"";display:none}
-.root-card .stackline{padding:6px 11px;margin-top:18px;border-radius:9px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.06)}
 
 /* projects — horizontal, centre card highlighted */
 .work{position:relative}
@@ -266,10 +247,11 @@ body.ready .hero::after{animation:flashIn 1.8s var(--ease) .1s both}
 .contact-word{position:absolute;left:50%;top:0;transform:translate3d(-50%,0,0);white-space:nowrap;font-family:var(--display);font-weight:900;font-stretch:125%;
   font-size:clamp(110px,20vw,320px);line-height:.9;letter-spacing:-.05em;color:rgba(255,255,255,.07);pointer-events:none;user-select:none;will-change:transform}
 .contact-grid{position:relative;display:grid;grid-template-columns:1.05fr 1fr;gap:clamp(28px,4vw,56px);align-items:start;perspective:1600px}
-.dispatch-card{position:relative;padding:clamp(22px,3vw,34px);border-radius:28px;overflow:hidden;
+.dispatch-item{position:relative;transform:translate3d(0,var(--ty,0px),0);opacity:var(--op,1);will-change:transform}
+.halo-contact{width:92%;opacity:.45;filter:blur(22px);animation-duration:24s}
+.dispatch-card{position:relative;z-index:1;padding:clamp(22px,3vw,34px);border-radius:28px;overflow:hidden;
   background:linear-gradient(160deg,rgba(90,80,100,.75),rgba(40,33,48,.9));border:1.5px solid rgba(255,255,255,.3);
-  box-shadow:0 50px 90px -40px rgba(0,0,0,.95),inset 0 1px 0 rgba(255,255,255,.25);
-  transform:translate3d(0,var(--ty,0px),0);opacity:var(--op,1);will-change:transform}
+  box-shadow:0 50px 90px -40px rgba(0,0,0,.95),inset 0 1px 0 rgba(255,255,255,.25)}
 .dispatch-head{position:relative;display:flex;justify-content:space-between;align-items:center}
 .mono{font-family:var(--mono);font-size:10.5px;font-weight:800;letter-spacing:.1em}
 .contact-title{position:relative;font-size:clamp(30px,3.6vw,48px);margin:22px 0 12px;color:#fff}
@@ -321,7 +303,6 @@ body.ready .hero::after{animation:flashIn 1.8s var(--ease) .1s both}
    RESPONSIVE
    ========================================================= */
 @media (max-width:1100px){
-  .root-grid{grid-template-columns:repeat(2,1fr)}
   .nav-links{gap:14px}
 }
 @media (max-width:900px){
@@ -350,7 +331,6 @@ body.ready .hero::after{animation:flashIn 1.8s var(--ease) .1s both}
 }
 @media (max-width:640px){
   .hire-btn{display:none}
-  .root-grid{grid-template-columns:1fr}
   .stat-row{grid-template-columns:1fr}
   .form-row{grid-template-columns:1fr}
   .project-card{width:80vw}
