@@ -7,7 +7,11 @@
   const $ = (s, c = document) => c.querySelector(s);
   const $$ = (s, c = document) => [...c.querySelectorAll(s)];
   const clamp = (v, a = 0, b = 1) => Math.min(Math.max(v, a), b);
-  const pageTop = el => el.getBoundingClientRect().top + window.scrollY;
+  const topCache = new Map();
+  const pageTop = el => {
+    if (!topCache.has(el)) topCache.set(el, el.getBoundingClientRect().top + window.scrollY);
+    return topCache.get(el);
+  };
   const lerp = (a, b, t) => a + (b - a) * t;
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
@@ -134,6 +138,7 @@
   const heroImg = $('#heroImg');
   const heroMedia = $('#heroMedia');
   const heroFlash = $('#heroFlash');
+  const heroDim = $('#heroDim');
   const heroContent = $('.hero-content');
   const heroSide = $('.hero-side');
   const lines = $$('.hero-headline .line');
@@ -187,6 +192,7 @@
     const target = total > 0 ? clamp((scrollY - top) / total) : 0;
     heroP = reduceMotion ? target : lerp(heroP, target, 0.12);
     const p = heroP;
+    if (scrollY > top + heroPin.offsetHeight) return;
 
     // Only the first 88% scrubs through states; the tail lets the hero settle before release
     const sp = clamp(p / 0.88);
@@ -217,7 +223,7 @@
     const exit = clamp((p - 0.9) / 0.1);
     heroContent.style.opacity = heroSide.style.opacity = 1 - exit;
     heroContent.style.translate = `0 ${-exit * 60}px`;
-    heroImg.style.filter = `grayscale(.15) contrast(1.05) brightness(${0.95 - exit * 0.45})`;
+    heroDim.style.opacity = exit * 0.5;
   }
 
   /* ---------- About: profile card tilt on scroll + mouse ---------- */
@@ -225,8 +231,8 @@
   const aboutSec = $('#about');
   let cardMouse = { x: 0, y: 0 };
   function updateProfile(vh) {
-    const r = aboutSec.getBoundingClientRect();
-    const p = clamp(1 - (r.top + r.height * 0.25) / vh); // 0 entering → 1 settled
+    const rTop = pageTop(aboutSec) - window.scrollY;
+    const p = clamp(1 - (rTop + aboutSec.offsetHeight * 0.25) / vh); // 0 entering → 1 settled
     const e = 1 - Math.pow(1 - p, 3);
     profileCard.style.setProperty('--ry', ((1 - e) * 24 + cardMouse.x * 12) + 'deg');
     profileCard.style.setProperty('--rx', ((1 - e) * 10 - cardMouse.y * 10) + 'deg');
@@ -253,6 +259,7 @@
   function sizeWork() {
     workDist = Math.max(0, workTrack.scrollWidth - window.innerWidth);
     workPin.style.height = (workDist + window.innerHeight * 1.15) + 'px';
+    topCache.clear();
   }
   function updateWork(scrollY, vh) {
     const total = workPin.offsetHeight - vh;
@@ -294,8 +301,8 @@
   const contactWord = $('#contactWord');
   const contactSec = $('#contact');
   function updateContact(vh) {
-    const r = contactSec.getBoundingClientRect();
-    const p = clamp((vh - r.top) / (vh + r.height));
+    const rTop = pageTop(contactSec) - window.scrollY;
+    const p = clamp((vh - rTop) / (vh + contactSec.offsetHeight));
     contactWord.style.transform = `translate3d(${(0.25 - p) * 60}vw,0,0)`;
   }
 
@@ -317,7 +324,7 @@
     else if (goingUp) nav.classList.remove('hidden');
 
     let current = navLinks[0];
-    sections.forEach((s, i) => { if (s && s.getBoundingClientRect().top <= vh * 0.4) current = navLinks[i]; });
+    sections.forEach((s, i) => { if (s && pageTop(s) - scrollY <= vh * 0.4) current = navLinks[i]; });
     if (current !== activeLink) {
       navLinks.forEach(a => a.classList.toggle('active', a === current));
       activeLink = current;
@@ -334,12 +341,49 @@
     menuBtn.setAttribute('aria-expanded', 'false');
   }));
 
+  /* ---------- Smooth scrolling ----------
+     Wheel input sets a target; each frame the page eases toward it.
+     Touch devices keep native momentum scrolling. */
+  const smoothOn = finePointer && !reduceMotion;
+  let targetY = window.scrollY, currentY = window.scrollY, smoothing = false;
+  const maxScroll = () => document.documentElement.scrollHeight - window.innerHeight;
+  function scrollToY(y) {
+    targetY = clamp(y, 0, maxScroll());
+    if (!smoothOn) return window.scrollTo(0, targetY);
+    if (!smoothing) currentY = window.scrollY;
+    smoothing = true;
+  }
+  function smoothStep() {
+    if (!smoothing) { currentY = targetY = window.scrollY; return; }
+    currentY = lerp(currentY, targetY, 0.085);
+    if (Math.abs(targetY - currentY) < 0.5) { currentY = targetY; smoothing = false; }
+    window.scrollTo(0, currentY);
+  }
+  if (smoothOn) {
+    document.documentElement.classList.add('smooth');
+    window.addEventListener('wheel', e => {
+      if (e.ctrlKey || document.body.classList.contains('is-loading')) return; // leave pinch-zoom alone
+      e.preventDefault();
+      const delta = e.deltaMode === 1 ? e.deltaY * 40 : e.deltaMode === 2 ? e.deltaY * window.innerHeight : e.deltaY;
+      scrollToY((smoothing ? targetY : window.scrollY) + delta);
+    }, { passive: false });
+  }
+  // Anchor links glide instead of jumping
+  $$('a[href^="#"]').forEach(a => a.addEventListener('click', e => {
+    const id = a.getAttribute('href');
+    const el = id.length > 1 && $(id);
+    if (!el) return;
+    e.preventDefault();
+    scrollToY(id === '#home' ? 0 : pageTop(el) - (id === '#work' ? 0 : 20));
+  }));
+
   /* ---------- Main loop ---------- */
   const progressBar = $('#scrollProgress');
   let lastY = window.scrollY, lastT = performance.now(), velocity = 0;
   function loop(now) {
     const dt = Math.min((now - lastT) / 1000, 0.05);
     lastT = now;
+    smoothStep();
     const y = window.scrollY;
     const vh = window.innerHeight;
     velocity = lerp(velocity, (y - lastY) / Math.max(dt, 0.001) / 60, 0.2);
@@ -452,8 +496,9 @@
   let resizeT;
   window.addEventListener('resize', () => {
     clearTimeout(resizeT);
-    resizeT = setTimeout(() => { sizeWork(); moveIndicator(activeLink); }, 120);
+    resizeT = setTimeout(() => { topCache.clear(); sizeWork(); moveIndicator(activeLink); }, 120);
   });
-  document.fonts && document.fonts.ready.then(() => { sizeWork(); moveIndicator(activeLink); });
+  document.fonts && document.fonts.ready.then(() => { topCache.clear(); sizeWork(); moveIndicator(activeLink); });
+  window.addEventListener('load', () => { topCache.clear(); sizeWork(); });
   requestAnimationFrame(loop);
 })();
