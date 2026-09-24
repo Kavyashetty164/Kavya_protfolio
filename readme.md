@@ -4,17 +4,16 @@ A dark, cinematic, scroll-driven developer portfolio built with plain HTML, CSS 
 
 ## Animations
 
-- **Preloader** — letters rise in with a 0 → 100 loading counter, then a curtain wipe reveals the page
-- **Scroll-scrubbed hero** — the hero stays pinned while you scroll through four headlines (letter-by-letter 3D flip), with a camera move on the portrait, light flashes between states, a mouse-following spotlight, scrambled mono captions and a segmented "scroll to scrub" timeline
-- **3D profile card** — rotates flat as the About section scrolls in and tilts toward the mouse, with a glossy highlight
-- **Skills marquee** — three rows of pills on a tilted plane scroll in alternating directions and speed up as you scroll
-- **Root map cards** — staggered rise-in, 3D mouse tilt, glow halos and a cursor spotlight
-- **Horizontal projects** — scrolling down moves the project cards sideways, with a progress bar and counter
-- **Section titles** — word-by-word masked reveal; blur/fade-in reveals throughout
-- **Contact** — a huge outlined "CONTACT" word slides past in parallax, with a live JSON payload preview and floating-label form (sends via `mailto:`)
-- **Footer** — a giant "KAVYA" wordmark rises in letter by letter
-- **Extras** — custom cursor, magnetic buttons, sliding nav indicator, scroll progress bar, film grain, and a nav that hides on scroll down
-- Respects `prefers-reduced-motion`; responsive down to phone widths
+- **Preloader** — "INITIALIZING SYSTEM" screen with name, role and a 0 → 100% counter, then a warm light flash into the hero
+- **Studio-lit hero** — portrait on a bright backdrop with dark vignette; the hero stays pinned while scrolling scrubs a timeline through three headlines that blur in and out, with a scrambled caption, light flashes and a moving studio light
+- **Head-turn video (optional)** — add a short clip of yourself turning (e.g. `assets/hero-turn.mp4`) and set `data-turn-video="assets/hero-turn.mp4"` on `#hero` in `index.html`; scrolling will then scrub through the clip frame by frame
+- **About** — tilted 3D device card with a diamond glow that straightens as it scrolls in and follows the mouse
+- **Skills** — two rows of glowing pills sliding in opposite directions, faster while scrolling
+- **Root map** — glass cards with white glow halos that rise and flatten one after another
+- **Projects** — vertical scroll moves the cards sideways; the centred card is highlighted
+- **Contact** — tilted glass "live dispatch" card with a live JSON preview, drifting giant CONTACT word
+- **Footer** — giant KAVYA wordmark that tips up into place
+- Smooth eased scrolling on desktop; respects `prefers-reduced-motion`; responsive down to phone widths
 
 ## Structure
 
@@ -23,8 +22,9 @@ A dark, cinematic, scroll-driven developer portfolio built with plain HTML, CSS 
 ├── style.css           # Styling, animations, responsive rules
 ├── script.js           # Scroll/animation engine and contact form
 └── assets/
-    ├── kavya.jpg            # Hero portrait (optimised)
-    ├── kavya-card.jpg       # Profile card photo (optimised)
+    ├── kavya-cutout.webp    # Hero portrait with background removed
+    ├── kavya-card.jpg       # Profile card photo (studio backdrop)
+    ├── kavya.jpg            # Optimised original photo
     ├── kavya-original.png   # Original photo
     └── Kavya-Resume.pdf     # Downloadable CV
 ```

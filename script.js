@@ -1,334 +1,276 @@
 /* =========================================================
    Kavya Shree G N — Portfolio interactions
-   One rAF loop drives every scroll-linked effect so the page
-   stays smooth; everything degrades gracefully without JS.
+   One rAF loop drives every scroll-linked effect.
    ========================================================= */
 (() => {
   const $ = (s, c = document) => c.querySelector(s);
   const $$ = (s, c = document) => [...c.querySelectorAll(s)];
   const clamp = (v, a = 0, b = 1) => Math.min(Math.max(v, a), b);
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const ease = t => 1 - Math.pow(1 - t, 3);
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+  // Page offsets are cached and refreshed on resize so the loop never forces layout
   const topCache = new Map();
   const pageTop = el => {
     if (!topCache.has(el)) topCache.set(el, el.getBoundingClientRect().top + window.scrollY);
     return topCache.get(el);
   };
-  const lerp = (a, b, t) => a + (b - a) * t;
-  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
-
-  /* ---------- Text splitting ---------- */
-  function splitChars(el) {
-    let i = 0;
-    const walk = node => {
-      [...node.childNodes].forEach(n => {
-        if (n.nodeType === 3) {
-          const frag = document.createDocumentFragment();
-          [...n.textContent].forEach(c => {
-            const s = document.createElement('span');
-            s.className = 'ch';
-            s.style.setProperty('--i', i++);
-            s.textContent = c === ' ' ? ' ' : c;
-            frag.appendChild(s);
-          });
-          n.replaceWith(frag);
-        } else if (n.nodeType === 1 && n.tagName !== 'BR') walk(n);
-      });
-    };
-    walk(el);
-  }
-  function splitWords(el) {
-    let i = 0;
-    const walk = node => {
-      [...node.childNodes].forEach(n => {
-        if (n.nodeType === 3) {
-          const frag = document.createDocumentFragment();
-          n.textContent.split(/(\s+)/).forEach(part => {
-            if (!part) return;
-            if (/^\s+$/.test(part)) { frag.appendChild(document.createTextNode(' ')); return; }
-            const w = document.createElement('span');
-            w.className = 'w';
-            const inner = document.createElement('span');
-            inner.textContent = part;
-            w.style.setProperty('--i', i++);
-            inner.style.setProperty('--i', i);
-            w.appendChild(inner);
-            frag.appendChild(w);
-          });
-          n.replaceWith(frag);
-        } else if (n.nodeType === 1 && n.tagName !== 'BR') walk(n);
-      });
-    };
-    walk(el);
-  }
-  $$('.hero-headline .line').forEach(splitChars);
-  $$('.split-words').forEach(splitWords);
-  splitChars($('#footerName'));
+  // 0 when the element's top enters the bottom of the viewport, 1 after `span` viewports
+  const enterProgress = (el, y, vh, span = 0.8) => clamp((y + vh - pageTop(el)) / (vh * span));
 
   /* ---------- Preloader ---------- */
   const loader = $('#loader');
   const loaderBar = $('#loaderBar');
   const loaderCount = $('#loaderCount');
-  const minTime = reduceMotion ? 0 : 1500;
+  const loaderStep = $('#loaderStep');
+  const steps = ['LOADING MODULES...', 'COMPILING ASSETS...', 'ESTABLISHING LINK...', 'SYSTEM READY'];
+  const minTime = reduceMotion ? 0 : 2200;
   const start = performance.now();
   let loaded = false;
   window.addEventListener('load', () => { loaded = true; });
+  setTimeout(() => { loaded = true; }, 5000);
 
   function tickLoader(now) {
-    const t = clamp((now - start) / minTime);
-    // Hold at 90% until the page has actually loaded
-    const p = loaded ? t : Math.min(t, 0.9);
-    const eased = 1 - Math.pow(1 - p, 3);
-    loaderBar.style.width = (eased * 100) + '%';
-    loaderCount.textContent = String(Math.round(eased * 100)).padStart(3, '0');
-    if (p >= 1) return finishLoading();
+    const t = clamp((now - start) / Math.max(minTime, 1));
+    const p = loaded ? t : Math.min(t, 0.92);
+    const e = 1 - Math.pow(1 - p, 2);
+    loaderBar.style.width = (e * 100) + '%';
+    loaderCount.textContent = Math.round(e * 100);
+    loaderStep.textContent = steps[Math.min(steps.length - 1, Math.floor(e * steps.length))];
+    if (p >= 1) {
+      setTimeout(() => {
+        loader.classList.add('done');
+        document.body.classList.remove('is-loading');
+        document.body.classList.add('ready');
+        setTimeout(() => loader.remove(), 1000);
+      }, reduceMotion ? 0 : 350);
+      return;
+    }
     requestAnimationFrame(tickLoader);
   }
-  function finishLoading() {
-    loader.classList.add('done');
-    document.body.classList.remove('is-loading');
-    document.body.classList.add('ready');
-    setTimeout(() => loader.remove(), 1200);
-  }
-  // Safety net in case 'load' never fires (e.g. a slow font request)
-  setTimeout(() => { loaded = true; }, 4000);
   requestAnimationFrame(tickLoader);
 
   /* ---------- Reveal on scroll ---------- */
   $$('[data-reveal-stagger]').forEach(g => [...g.children].forEach((c, i) => c.style.setProperty('--i', i)));
   const io = new IntersectionObserver(entries => {
     entries.forEach(e => {
-      if (!e.isIntersecting) return;
-      e.target.classList.add('in');
-      if (e.target.matches('.counter-row')) runCounters(e.target);
-      io.unobserve(e.target);
+      if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
     });
-  }, { threshold: 0.15, rootMargin: '0px 0px -8% 0px' });
-  $$('[data-reveal],[data-reveal-stagger],.split-words,.footer-name').forEach(el => io.observe(el));
+  }, { threshold: 0.15, rootMargin: '0px 0px -6% 0px' });
+  $$('[data-reveal],[data-reveal-stagger]').forEach(el => io.observe(el));
 
-  function runCounters(root) {
-    $$('[data-count]', root).forEach(el => {
-      const target = +el.dataset.count;
-      const t0 = performance.now();
-      const dur = 1600;
-      const step = now => {
-        const p = clamp((now - t0) / dur);
-        el.textContent = Math.round(target * (1 - Math.pow(1 - p, 4)));
-        if (p < 1) requestAnimationFrame(step);
-      };
-      requestAnimationFrame(step);
-    });
-  }
-
-  /* ---------- Hero scroll-scrub ---------- */
+  /* ---------- Hero: scroll-scrubbed timeline ---------- */
   const states = [
     { comment: '// TURNING IDEAS INTO REALITY', desc: 'Available for hire. Building fast, responsive web applications using modern tech stacks.' },
     { comment: '// BUILDING END-TO-END', desc: 'Designing interfaces in React and wiring them to Python and Flask APIs underneath.' },
-    { comment: '// TURNING NUMBERS INTO INSIGHT', desc: 'Building Power BI dashboards and analysis that make raw data easy to act on.' },
-    { comment: '// MACHINE LEARNING IN PRACTICE', desc: 'Exploring model fundamentals and applied AI while completing my MCA in Bengaluru.' }
-  ];
-  // Camera "keyframes" for the portrait — interpolated as you scroll
-  const frames = [
-    { x: 0, y: 0, s: 1.0 },
-    { x: -4, y: -3, s: 1.14 },
-    { x: 3, y: -6, s: 1.26 },
-    { x: -1, y: 1, s: 1.06 }
+    { comment: '// TURNING NUMBERS INTO INSIGHT', desc: 'Building Power BI dashboards and analysis that make raw data easy to act on.' }
   ];
   const heroPin = $('#home');
   const hero = $('#hero');
-  const heroImg = $('#heroImg');
-  const heroMedia = $('#heroMedia');
+  const subject = $('#heroSubject');
   const heroFlash = $('#heroFlash');
-  const heroDim = $('#heroDim');
-  const heroContent = $('.hero-content');
-  const heroSide = $('.hero-side');
   const lines = $$('.hero-headline .line');
   const commentEl = $('#heroComment');
   const descEl = $('#heroDesc');
-  const segs = $$('.scrub-seg i');
-  let heroIdx = 0;
-  let heroP = 0;
+  const scrubBar = $('#scrubBar');
+  let heroIdx = 0, heroP = 0;
 
-  const glyphs = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ/<>_#*01';
+  // Optional real head-turn clip: set data-turn-video="assets/hero-turn.mp4" on #hero
+  let turnVideo = null;
+  const videoSrc = hero.dataset.turnVideo;
+  if (videoSrc) {
+    turnVideo = document.createElement('video');
+    Object.assign(turnVideo, { src: videoSrc, muted: true, playsInline: true, preload: 'auto' });
+    turnVideo.setAttribute('muted', '');
+    turnVideo.addEventListener('loadedmetadata', () => hero.classList.add('has-video'));
+    turnVideo.addEventListener('error', () => { turnVideo.remove(); turnVideo = null; });
+    subject.appendChild(turnVideo);
+  }
+
+  const glyphs = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ/<>_#01';
   let scrambleId = 0;
   function scramble(el, text) {
     const id = ++scrambleId;
     if (reduceMotion) { el.textContent = text; return; }
-    let frame = 0;
-    const total = 22;
-    const run = () => {
+    let f = 0;
+    const total = 20;
+    (function run() {
       if (id !== scrambleId) return;
-      const reveal = Math.floor((frame / total) * text.length);
-      el.textContent = text.split('').map((c, i) =>
-        i < reveal || c === ' ' ? c : glyphs[Math.floor(Math.random() * glyphs.length)]
-      ).join('');
-      if (frame++ < total) requestAnimationFrame(run); else el.textContent = text;
-    };
-    run();
+      const reveal = Math.floor((f / total) * text.length);
+      el.textContent = [...text].map((c, i) => i < reveal || c === ' ' ? c : glyphs[(Math.random() * glyphs.length) | 0]).join('');
+      if (f++ < total) requestAnimationFrame(run); else el.textContent = text;
+    })();
   }
   function setHeroState(idx) {
     if (idx === heroIdx) return;
-    lines.forEach(l => {
-      const i = +l.dataset.i;
+    lines.forEach((l, i) => {
       l.classList.toggle('is-leaving', i === heroIdx);
       l.classList.toggle('is-active', i === idx);
     });
     heroIdx = idx;
     scramble(commentEl, states[idx].comment);
     descEl.classList.add('swap');
-    setTimeout(() => { descEl.textContent = states[idx].desc; descEl.classList.remove('swap'); }, 250);
+    setTimeout(() => { descEl.textContent = states[idx].desc; descEl.classList.remove('swap'); }, 220);
   }
 
-  // Spotlight + parallax follow the mouse inside the hero
-  let mx = 0.5, my = 0.4, smx = 0.5, smy = 0.4;
-  hero.addEventListener('pointermove', e => {
-    const r = hero.getBoundingClientRect();
-    mx = (e.clientX - r.left) / r.width;
-    my = (e.clientY - r.top) / r.height;
-  });
+  let mx = 0.62, my = 0.38, smx = 0.62, smy = 0.38;
+  hero.addEventListener('pointermove', e => { mx = e.clientX / innerWidth; my = e.clientY / innerHeight; });
 
-  function updateHero(scrollY, vh) {
+  function updateHero(y, vh) {
     const top = pageTop(heroPin);
+    if (y > top + heroPin.offsetHeight) return;
     const total = heroPin.offsetHeight - vh;
-    const target = total > 0 ? clamp((scrollY - top) / total) : 0;
-    heroP = reduceMotion ? target : lerp(heroP, target, 0.12);
+    const target = total > 0 ? clamp((y - top) / total) : 0;
+    heroP = reduceMotion ? target : lerp(heroP, target, 0.14);
     const p = heroP;
-    if (scrollY > top + heroPin.offsetHeight) return;
 
-    // Only the first 88% scrubs through states; the tail lets the hero settle before release
-    const sp = clamp(p / 0.88);
-    const f = sp * 4;
-    setHeroState(Math.min(3, Math.floor(f)));
-    segs.forEach((s, i) => { s.style.transform = `scaleX(${clamp(f - i)})`; });
+    const f = clamp(p / 0.92) * states.length;
+    setHeroState(Math.min(states.length - 1, Math.floor(f)));
+    scrubBar.style.transform = `scaleX(${p})`;
 
-    // Portrait camera move
-    const k = sp * (frames.length - 1);
-    const a = frames[Math.floor(k)] || frames[frames.length - 1];
-    const b = frames[Math.min(Math.floor(k) + 1, frames.length - 1)];
-    const t = k - Math.floor(k);
-    const ease = t * t * (3 - 2 * t);
-    smx = lerp(smx, mx, 0.08);
-    smy = lerp(smy, my, 0.08);
-    const px = (smx - 0.5) * -24, py = (smy - 0.5) * -16;
-    const x = lerp(a.x, b.x, ease), y = lerp(a.y, b.y, ease), s = lerp(a.s, b.s, ease);
-    heroMedia.style.transform = `translate3d(calc(${x}% + ${px}px), calc(${y}% + ${py}px), 0) scale(${s})`;
-    hero.style.setProperty('--mx', (smx * 100) + '%');
-    hero.style.setProperty('--my', (smy * 100) + '%');
+    if (turnVideo && turnVideo.duration) {
+      const t = p * (turnVideo.duration - 0.05);
+      if (Math.abs(turnVideo.currentTime - t) > 0.03) turnVideo.currentTime = t;
+    } else {
+      // Photo mode: the portrait sways and turns slightly as the timeline plays
+      const turn = Math.sin(p * Math.PI * 2);
+      subject.style.setProperty('--sr', (turn * 9) + 'deg');
+      subject.style.setProperty('--sx', (turn * -3) + 'vw');
+      subject.style.setProperty('--ss', 1 + Math.sin(p * Math.PI) * 0.06);
+    }
 
-    // Light flash as the timeline crosses each boundary
+    // Studio light follows the mouse and sweeps with the timeline
+    smx = lerp(smx, mx, 0.06); smy = lerp(smy, my, 0.06);
+    hero.style.setProperty('--lx', ((smx * 0.5 + 0.35 + Math.sin(p * Math.PI * 2) * 0.08) * 100) + '%');
+    hero.style.setProperty('--ly', ((smy * 0.4 + 0.2) * 100) + '%');
+
+    // Bright flash as the timeline crosses into each new headline
     let flash = 0;
-    for (let bnd = 1; bnd < 4; bnd++) flash = Math.max(flash, 1 - Math.abs(f - bnd) / 0.14);
-    heroFlash.style.opacity = reduceMotion ? 0 : clamp(flash) * 0.75;
-
-    // Exit: content drifts up & fades, portrait dims
-    const exit = clamp((p - 0.9) / 0.1);
-    heroContent.style.opacity = heroSide.style.opacity = 1 - exit;
-    heroContent.style.translate = `0 ${-exit * 60}px`;
-    heroDim.style.opacity = exit * 0.5;
+    for (let b = 1; b < states.length; b++) flash = Math.max(flash, 1 - Math.abs(f - b) / 0.12);
+    heroFlash.style.opacity = reduceMotion ? 0 : clamp(flash) * 0.85;
   }
 
-  /* ---------- About: profile card tilt on scroll + mouse ---------- */
-  const profileCard = $('#profileCard');
+  /* ---------- About: tilted device card ---------- */
   const aboutSec = $('#about');
-  let cardMouse = { x: 0, y: 0 };
-  function updateProfile(vh) {
-    const rTop = pageTop(aboutSec) - window.scrollY;
-    const p = clamp(1 - (rTop + aboutSec.offsetHeight * 0.25) / vh); // 0 entering → 1 settled
-    const e = 1 - Math.pow(1 - p, 3);
-    profileCard.style.setProperty('--ry', ((1 - e) * 24 + cardMouse.x * 12) + 'deg');
-    profileCard.style.setProperty('--rx', ((1 - e) * 10 - cardMouse.y * 10) + 'deg');
-    profileCard.style.setProperty('--rz', ((1 - e) * -6) + 'deg');
-  }
+  const profileCard = $('#profileCard');
+  const profileGlow = $('.profile-glow');
+  let cardMouse = { x: 0, y: 0 }, cm = { x: 0, y: 0 };
   if (finePointer) {
     profileCard.addEventListener('pointermove', e => {
       const r = profileCard.getBoundingClientRect();
-      cardMouse.x = (e.clientX - r.left) / r.width - 0.5;
-      cardMouse.y = (e.clientY - r.top) / r.height - 0.5;
-      profileCard.style.setProperty('--sx', ((cardMouse.x + 0.5) * 100) + '%');
-      profileCard.style.setProperty('--sy', ((cardMouse.y + 0.5) * 100) + '%');
+      cardMouse = { x: (e.clientX - r.left) / r.width - 0.5, y: (e.clientY - r.top) / r.height - 0.5 };
     });
     profileCard.addEventListener('pointerleave', () => { cardMouse = { x: 0, y: 0 }; });
   }
+  function updateAbout(y, vh) {
+    const e = ease(enterProgress(aboutSec, y, vh, 1.0));
+    cm.x = lerp(cm.x, cardMouse.x, 0.1); cm.y = lerp(cm.y, cardMouse.y, 0.1);
+    profileCard.style.setProperty('--rx', (lerp(28, 6, e) - cm.y * 10) + 'deg');
+    profileCard.style.setProperty('--ry', (lerp(-38, -14, e) + cm.x * 14) + 'deg');
+    profileCard.style.setProperty('--rz', lerp(-14, -5, e) + 'deg');
+    profileCard.style.setProperty('--ty', lerp(140, 0, e) + 'px');
+    profileGlow.style.setProperty('--gs', lerp(0.4, 1, e));
+  }
 
-  /* ---------- Projects: vertical scroll → horizontal track ---------- */
+  /* ---------- Root map cards rise and flatten ---------- */
+  const rootGrid = $('#rootGrid');
+  const rootCards = $$('.root-card');
+  function updateRoots(y, vh) {
+    const base = enterProgress(rootGrid, y, vh, 0.9);
+    rootCards.forEach((c, i) => {
+      const e = ease(clamp(base * 1.5 - i * 0.12));
+      c.style.setProperty('--ty', lerp(160, 0, e) + 'px');
+      c.style.setProperty('--rx', lerp(48, 0, e) + 'deg');
+      c.style.setProperty('--ry', lerp(-18, 0, e) + 'deg');
+      c.style.setProperty('--op', e);
+    });
+  }
+
+  /* ---------- Projects: vertical scroll → horizontal, centre card in focus ---------- */
   const workPin = $('#workPin');
   const workTrack = $('#workTrack');
-  const workBar = $('#workBar');
-  const workCount = $('#workCount');
-  const workCards = workTrack.children.length;
-  let workDist = 0, workX = 0;
+  const projects = [...workTrack.children];
+  let workStart = 0, workDist = 0, workX = 0, focusIdx = -1;
   function sizeWork() {
-    workDist = Math.max(0, workTrack.scrollWidth - window.innerWidth);
-    workPin.style.height = (workDist + window.innerHeight * 1.15) + 'px';
+    const first = projects[0], last = projects[projects.length - 1];
+    workStart = innerWidth / 2 - (first.offsetLeft + first.offsetWidth / 2);
+    workDist = (last.offsetLeft + last.offsetWidth / 2) - (first.offsetLeft + first.offsetWidth / 2);
+    workPin.style.height = (workDist * 1.1 + innerHeight * 1.2) + 'px';
     topCache.clear();
   }
-  function updateWork(scrollY, vh) {
+  function updateWork(y, vh) {
     const total = workPin.offsetHeight - vh;
-    const p = total > 0 ? clamp((scrollY - pageTop(workPin)) / total) : 0;
-    workX = reduceMotion ? p : lerp(workX, p, 0.1);
-    workTrack.style.transform = `translate3d(${-workX * workDist}px,0,0)`;
-    workBar.style.transform = `scaleX(${workX})`;
-    const n = Math.min(workCards, Math.floor(workX * workCards) + 1);
-    workCount.textContent = String(n).padStart(2, '0') + ' / ' + String(workCards).padStart(2, '0');
+    const p = total > 0 ? clamp((y - pageTop(workPin)) / total) : 0;
+    workX = reduceMotion ? p : lerp(workX, p, 0.12);
+    workTrack.style.transform = `translate3d(${workStart - workX * workDist}px,0,0)`;
+    const idx = Math.round(workX * (projects.length - 1));
+    if (idx !== focusIdx) {
+      projects.forEach((c, i) => c.classList.toggle('is-focus', i === idx));
+      focusIdx = idx;
+    }
   }
 
-  /* ---------- Skills marquee (speeds up with scroll velocity) ---------- */
+  /* ---------- Contact: dispatch card straightens, giant word drifts ---------- */
+  const contactSec = $('#contact');
+  const contactGrid = $('#contactGrid');
+  const dispatchCard = $('#dispatchCard');
+  const contactWord = $('#contactWord');
+  function updateContact(y, vh) {
+    const e = ease(enterProgress(contactGrid, y, vh, 0.9));
+    dispatchCard.style.setProperty('--rx', lerp(38, 8, e) + 'deg');
+    dispatchCard.style.setProperty('--ry', lerp(24, 10, e) + 'deg');
+    dispatchCard.style.setProperty('--ty', lerp(120, 0, e) + 'px');
+    const w = clamp((y + vh - pageTop(contactSec)) / (vh + contactSec.offsetHeight));
+    contactWord.style.transform = `translate3d(calc(-50% + ${(0.4 - w) * 30}vw),0,0)`;
+  }
+
+  /* ---------- Footer wordmark lifts up ---------- */
+  const footerName = $('#footerName');
+  function updateFooter(y, vh) {
+    const e = ease(enterProgress(footerName, y, vh, 0.6));
+    footerName.style.setProperty('--frx', lerp(70, 0, e) + 'deg');
+    footerName.style.setProperty('--fty', lerp(80, 0, e) + 'px');
+    footerName.style.setProperty('--fop', e);
+  }
+
+  /* ---------- Skills marquee ---------- */
   const marquees = $$('.marquee').map(m => {
     const track = $('.marquee-track', m);
     const original = track.innerHTML;
-    // Fill to at least 2× viewport so the loop never shows a gap
-    while (track.scrollWidth < window.innerWidth * 1.2) track.innerHTML += original;
+    while (track.scrollWidth < innerWidth * 1.3) track.innerHTML += original;
     track.innerHTML += track.innerHTML;
-    return { track, dir: m.classList.contains('reverse') ? 1 : -1, speed: +m.dataset.speed || 40, x: 0, hover: false, m };
-  });
-  marquees.forEach(q => {
-    q.m.addEventListener('pointerenter', () => { q.hover = true; });
-    q.m.addEventListener('pointerleave', () => { q.hover = false; });
+    const q = { track, dir: m.classList.contains('reverse') ? 1 : -1, speed: +m.dataset.speed || 36, x: 0, hover: false };
+    m.addEventListener('pointerenter', () => { q.hover = true; });
+    m.addEventListener('pointerleave', () => { q.hover = false; });
+    return q;
   });
   function updateMarquees(dt, velocity) {
     if (reduceMotion) return;
-    const boost = 1 + Math.min(Math.abs(velocity) * 0.04, 6);
+    const boost = 1 + Math.min(Math.abs(velocity) * 0.04, 5);
     marquees.forEach(q => {
       const half = q.track.scrollWidth / 2;
-      const v = q.speed * (q.hover ? 0.2 : boost);
-      q.x += q.dir * v * dt;
+      q.x += q.dir * q.speed * (q.hover ? 0.2 : boost) * dt;
       if (q.x <= -half) q.x += half;
       if (q.x > 0) q.x -= half;
       q.track.style.transform = `translate3d(${q.x}px,0,0)`;
     });
   }
 
-  /* ---------- Contact giant word ---------- */
-  const contactWord = $('#contactWord');
-  const contactSec = $('#contact');
-  function updateContact(vh) {
-    const rTop = pageTop(contactSec) - window.scrollY;
-    const p = clamp((vh - rTop) / (vh + contactSec.offsetHeight));
-    contactWord.style.transform = `translate3d(${(0.25 - p) * 60}vw,0,0)`;
-  }
-
   /* ---------- Nav ---------- */
   const nav = $('#nav');
   const navLinks = $$('#navLinks a');
-  const indicator = $('#navIndicator');
   const sections = navLinks.map(a => $(a.getAttribute('href')));
   let activeLink = null;
-  function moveIndicator(a) {
-    if (!a || !indicator) return;
-    indicator.style.width = a.offsetWidth + 'px';
-    indicator.style.transform = `translateX(${a.offsetLeft}px)`;
-  }
-  function updateNav(scrollY, lastY, vh) {
-    nav.classList.toggle('scrolled', scrollY > 40);
-    const goingDown = scrollY > lastY + 2, goingUp = scrollY < lastY - 2;
-    if (goingDown && scrollY > vh * 0.6 && !document.body.classList.contains('menu-open')) nav.classList.add('hidden');
-    else if (goingUp) nav.classList.remove('hidden');
-
+  function updateNav(y, lastY, vh) {
+    if (y > lastY + 3 && y > vh && !document.body.classList.contains('menu-open')) nav.classList.add('hidden');
+    else if (y < lastY - 3) nav.classList.remove('hidden');
     let current = navLinks[0];
-    sections.forEach((s, i) => { if (s && pageTop(s) - scrollY <= vh * 0.4) current = navLinks[i]; });
+    sections.forEach((s, i) => { if (s && pageTop(s) - y <= vh * 0.4) current = navLinks[i]; });
     if (current !== activeLink) {
       navLinks.forEach(a => a.classList.toggle('active', a === current));
       activeLink = current;
-      moveIndicator(current);
     }
   }
   const menuBtn = $('#menuBtn');
@@ -336,25 +278,19 @@
     const open = document.body.classList.toggle('menu-open');
     menuBtn.setAttribute('aria-expanded', open);
   });
-  navLinks.forEach(a => a.addEventListener('click', () => {
-    document.body.classList.remove('menu-open');
-    menuBtn.setAttribute('aria-expanded', 'false');
-  }));
 
-  /* ---------- Smooth scrolling ----------
-     Wheel input sets a target; each frame the page eases toward it.
-     Touch devices keep native momentum scrolling. */
+  /* ---------- Smooth scrolling (desktop wheel + anchor links) ---------- */
   const smoothOn = finePointer && !reduceMotion;
-  let targetY = window.scrollY, currentY = window.scrollY, smoothing = false;
-  const maxScroll = () => document.documentElement.scrollHeight - window.innerHeight;
+  let targetY = scrollY, currentY = scrollY, smoothing = false;
+  const maxScroll = () => document.documentElement.scrollHeight - innerHeight;
   function scrollToY(y) {
     targetY = clamp(y, 0, maxScroll());
     if (!smoothOn) return window.scrollTo(0, targetY);
-    if (!smoothing) currentY = window.scrollY;
+    if (!smoothing) currentY = scrollY;
     smoothing = true;
   }
   function smoothStep() {
-    if (!smoothing) { currentY = targetY = window.scrollY; return; }
+    if (!smoothing) return;
     currentY = lerp(currentY, targetY, 0.085);
     if (Math.abs(targetY - currentY) < 0.5) { currentY = targetY; smoothing = false; }
     window.scrollTo(0, currentY);
@@ -362,40 +298,53 @@
   if (smoothOn) {
     document.documentElement.classList.add('smooth');
     window.addEventListener('wheel', e => {
-      if (e.ctrlKey || document.body.classList.contains('is-loading')) return; // leave pinch-zoom alone
+      if (e.ctrlKey || document.body.classList.contains('is-loading')) return;
       e.preventDefault();
-      const delta = e.deltaMode === 1 ? e.deltaY * 40 : e.deltaMode === 2 ? e.deltaY * window.innerHeight : e.deltaY;
-      scrollToY((smoothing ? targetY : window.scrollY) + delta);
+      const d = e.deltaMode === 1 ? e.deltaY * 40 : e.deltaMode === 2 ? e.deltaY * innerHeight : e.deltaY;
+      scrollToY((smoothing ? targetY : scrollY) + d);
     }, { passive: false });
   }
-  // Anchor links glide instead of jumping
   $$('a[href^="#"]').forEach(a => a.addEventListener('click', e => {
     const id = a.getAttribute('href');
     const el = id.length > 1 && $(id);
+    document.body.classList.remove('menu-open');
+    menuBtn.setAttribute('aria-expanded', 'false');
     if (!el) return;
     e.preventDefault();
-    scrollToY(id === '#home' ? 0 : pageTop(el) - (id === '#work' ? 0 : 20));
+    scrollToY(id === '#home' ? 0 : pageTop(el));
   }));
 
+  /* ---------- Cursor ---------- */
+  const cursor = $('#cursor'), ring = $('#cursorRing');
+  let cx = -100, cy = -100, rx = -100, ry = -100;
+  if (finePointer) {
+    addEventListener('pointermove', e => { cx = e.clientX; cy = e.clientY; document.body.classList.add('has-cursor'); });
+    document.addEventListener('pointerleave', () => document.body.classList.remove('has-cursor'));
+    document.addEventListener('pointerover', e => ring.classList.toggle('hover', !!e.target.closest('a,button,.pill,.project-card,.root-card,input,textarea,label')));
+  }
+  function updateCursor() {
+    if (!finePointer) return;
+    rx = lerp(rx, cx, 0.2); ry = lerp(ry, cy, 0.2);
+    cursor.style.transform = `translate3d(${cx}px,${cy}px,0)`;
+    ring.style.transform = `translate3d(${rx}px,${ry}px,0)`;
+  }
+
   /* ---------- Main loop ---------- */
-  const progressBar = $('#scrollProgress');
-  let lastY = window.scrollY, lastT = performance.now(), velocity = 0;
+  let lastY = scrollY, lastT = performance.now(), velocity = 0;
   function loop(now) {
     const dt = Math.min((now - lastT) / 1000, 0.05);
     lastT = now;
     smoothStep();
-    const y = window.scrollY;
-    const vh = window.innerHeight;
+    const y = scrollY, vh = innerHeight;
     velocity = lerp(velocity, (y - lastY) / Math.max(dt, 0.001) / 60, 0.2);
 
-    const docH = document.documentElement.scrollHeight - vh;
-    progressBar.style.transform = `scaleX(${docH > 0 ? y / docH : 0})`;
-
     updateHero(y, vh);
-    updateProfile(vh);
+    updateAbout(y, vh);
+    updateRoots(y, vh);
     updateWork(y, vh);
+    updateContact(y, vh);
+    updateFooter(y, vh);
     updateMarquees(dt, velocity);
-    updateContact(vh);
     updateNav(y, lastY, vh);
     updateCursor();
 
@@ -403,89 +352,25 @@
     requestAnimationFrame(loop);
   }
 
-  /* ---------- Cursor ---------- */
-  const cursor = $('#cursor'), ring = $('#cursorRing');
-  let cx = -100, cy = -100, rx = -100, ry = -100;
-  function updateCursor() {
-    if (!finePointer) return;
-    rx = lerp(rx, cx, 0.18);
-    ry = lerp(ry, cy, 0.18);
-    cursor.style.transform = `translate3d(${cx}px,${cy}px,0)`;
-    ring.style.transform = `translate3d(${rx}px,${ry}px,0)`;
-  }
-  if (finePointer) {
-    window.addEventListener('pointermove', e => {
-      cx = e.clientX; cy = e.clientY;
-      document.body.classList.add('has-cursor');
-    });
-    document.addEventListener('pointerleave', () => document.body.classList.remove('has-cursor'));
-    document.addEventListener('pointerover', e => {
-      ring.classList.toggle('hover', !!e.target.closest('a,button,.pill,.project-card,.root-card,input,textarea,label'));
-    });
-  }
-
-  /* ---------- Magnetic buttons ---------- */
-  if (finePointer && !reduceMotion) {
-    $$('.magnetic').forEach(el => {
-      el.addEventListener('pointermove', e => {
-        const r = el.getBoundingClientRect();
-        const x = e.clientX - r.left - r.width / 2;
-        const y = e.clientY - r.top - r.height / 2;
-        el.style.transform = `translate(${x * 0.3}px,${y * 0.4}px)`;
-      });
-      el.addEventListener('pointerleave', () => {
-        el.style.transition = 'transform .6s cubic-bezier(.16,1,.3,1)';
-        el.style.transform = '';
-        setTimeout(() => { el.style.transition = ''; }, 600);
-      });
-    });
-
-    /* 3D tilt + spotlight on cards */
-    $$('.root-card').forEach(el => {
-      el.addEventListener('pointermove', e => {
-        const r = el.getBoundingClientRect();
-        const x = (e.clientX - r.left) / r.width - 0.5;
-        const y = (e.clientY - r.top) / r.height - 0.5;
-        el.style.setProperty('--ry', (x * 14) + 'deg');
-        el.style.setProperty('--rx', (-y * 14) + 'deg');
-      });
-      el.addEventListener('pointerleave', () => {
-        el.style.setProperty('--ry', '0deg');
-        el.style.setProperty('--rx', '0deg');
-      });
-    });
-  }
-  $$('.spot').forEach(el => {
-    el.addEventListener('pointermove', e => {
-      const r = el.getBoundingClientRect();
-      el.style.setProperty('--px', (e.clientX - r.left) + 'px');
-      el.style.setProperty('--py', (e.clientY - r.top) + 'px');
-    });
-  });
-
-  /* ---------- Contact form + live JSON preview ---------- */
-  const fName = $('#fName'), fEmail = $('#fEmail'), fMsg = $('#fMsg'), fConsent = $('#fConsent');
-  const pvName = $('#pvName'), pvEmail = $('#pvEmail'), pvMsg = $('#pvMsg');
-  const sendBtn = $('#sendBtn');
+  /* ---------- Contact form + live payload preview ---------- */
+  const fFirst = $('#fFirst'), fLast = $('#fLast'), fEmail = $('#fEmail'), fMsg = $('#fMsg'), fConsent = $('#fConsent');
+  const pvName = $('#pvName'), pvEmail = $('#pvEmail'), pvMsg = $('#pvMsg'), sendBtn = $('#sendBtn');
   const validEmail = v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
-
+  const fullName = () => [fFirst.value.trim(), fLast.value.trim()].filter(Boolean).join(' ');
   function syncPreview() {
-    const n = fName.value.trim(), m = fEmail.value.trim(), msg = fMsg.value.trim();
-    pvName.textContent = n || '[Awaiting Name]';
-    pvName.classList.toggle('empty', !n);
-    pvEmail.textContent = m || '[Awaiting Email]';
-    pvEmail.classList.toggle('empty', !m);
-    pvMsg.textContent = msg ? `"${msg}"` : '"[Awaiting Message]"';
-    pvMsg.classList.toggle('empty', !msg);
+    const n = fullName(), m = fEmail.value.trim(), msg = fMsg.value.trim();
+    pvName.textContent = n || '[Awaiting Name]'; pvName.classList.toggle('empty', !n);
+    pvEmail.textContent = m || '[Awaiting Email]'; pvEmail.classList.toggle('empty', !m);
+    pvMsg.textContent = msg ? `"${msg}"` : '"[Awaiting Message]"'; pvMsg.classList.toggle('empty', !msg);
     sendBtn.disabled = !(n && validEmail(m) && msg && fConsent.checked);
   }
-  [fName, fEmail, fMsg].forEach(el => el.addEventListener('input', syncPreview));
+  [fFirst, fLast, fEmail, fMsg].forEach(el => el.addEventListener('input', syncPreview));
   fConsent.addEventListener('change', syncPreview);
   $('#contactForm').addEventListener('submit', e => {
     e.preventDefault();
     if (sendBtn.disabled) return;
-    const subject = encodeURIComponent('Portfolio contact from ' + fName.value.trim());
-    const body = encodeURIComponent(fMsg.value.trim() + '\n\n— ' + fName.value.trim() + ' (' + fEmail.value.trim() + ')');
+    const subject = encodeURIComponent('Portfolio contact from ' + fullName());
+    const body = encodeURIComponent(fMsg.value.trim() + '\n\n— ' + fullName() + ' (' + fEmail.value.trim() + ')');
     window.location.href = `mailto:kavyamurthy2004@gmail.com?subject=${subject}&body=${body}`;
   });
 
@@ -494,11 +379,8 @@
   /* ---------- Boot ---------- */
   sizeWork();
   let resizeT;
-  window.addEventListener('resize', () => {
-    clearTimeout(resizeT);
-    resizeT = setTimeout(() => { topCache.clear(); sizeWork(); moveIndicator(activeLink); }, 120);
-  });
-  document.fonts && document.fonts.ready.then(() => { topCache.clear(); sizeWork(); moveIndicator(activeLink); });
-  window.addEventListener('load', () => { topCache.clear(); sizeWork(); });
+  addEventListener('resize', () => { clearTimeout(resizeT); resizeT = setTimeout(() => { topCache.clear(); sizeWork(); }, 120); });
+  addEventListener('load', () => { topCache.clear(); sizeWork(); });
+  document.fonts && document.fonts.ready.then(() => { topCache.clear(); sizeWork(); });
   requestAnimationFrame(loop);
 })();
