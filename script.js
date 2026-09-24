@@ -155,7 +155,6 @@
   /* ---------- About: tilted device card ---------- */
   const aboutSec = $('#about');
   const profileCard = $('#profileCard');
-  const profileGlow = $('.profile-glow');
   let cardMouse = { x: 0, y: 0 }, cm = { x: 0, y: 0 };
   if (finePointer) {
     profileCard.addEventListener('pointermove', e => {
@@ -171,12 +170,11 @@
     profileCard.style.setProperty('--ry', (lerp(-38, -14, e) + cm.x * 14) + 'deg');
     profileCard.style.setProperty('--rz', lerp(-14, -5, e) + 'deg');
     profileCard.style.setProperty('--ty', lerp(140, 0, e) + 'px');
-    profileGlow.style.setProperty('--gs', lerp(0.4, 1, e));
   }
 
   /* ---------- Root map cards rise and flatten ---------- */
   const rootGrid = $('#rootGrid');
-  const rootCards = $$('.root-card');
+  const rootCards = $$('.root-item');
   function updateRoots(y, vh) {
     const base = enterProgress(rootGrid, y, vh, 0.9);
     rootCards.forEach((c, i) => {
@@ -219,20 +217,10 @@
   const contactWord = $('#contactWord');
   function updateContact(y, vh) {
     const e = ease(enterProgress(contactGrid, y, vh, 0.9));
-    dispatchCard.style.setProperty('--rx', lerp(38, 8, e) + 'deg');
-    dispatchCard.style.setProperty('--ry', lerp(24, 10, e) + 'deg');
-    dispatchCard.style.setProperty('--ty', lerp(120, 0, e) + 'px');
+    dispatchCard.style.setProperty('--ty', lerp(80, 0, e) + 'px');
+    dispatchCard.style.setProperty('--op', e);
     const w = clamp((y + vh - pageTop(contactSec)) / (vh + contactSec.offsetHeight));
     contactWord.style.transform = `translate3d(calc(-50% + ${(0.4 - w) * 30}vw),0,0)`;
-  }
-
-  /* ---------- Footer wordmark lifts up ---------- */
-  const footerName = $('#footerName');
-  function updateFooter(y, vh) {
-    const e = ease(enterProgress(footerName, y, vh, 0.6));
-    footerName.style.setProperty('--frx', lerp(70, 0, e) + 'deg');
-    footerName.style.setProperty('--fty', lerp(80, 0, e) + 'px');
-    footerName.style.setProperty('--fop', e);
   }
 
   /* ---------- Skills marquee ---------- */
@@ -343,7 +331,6 @@
     updateRoots(y, vh);
     updateWork(y, vh);
     updateContact(y, vh);
-    updateFooter(y, vh);
     updateMarquees(dt, velocity);
     updateNav(y, lastY, vh);
     updateCursor();
